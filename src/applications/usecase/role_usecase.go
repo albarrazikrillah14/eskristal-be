@@ -14,6 +14,7 @@ import (
 type RoleUseCase interface {
 	Create(ctx context.Context, request *roles.CreateRoleRequest) error
 	FindAll(ctx context.Context) []roles.RoleResponse
+	DeleteByID(ctx context.Context, request *roles.DeleteRoleRequest) error
 }
 
 type roleUseCaseImpl struct {
@@ -76,4 +77,22 @@ func (r *roleUseCaseImpl) FindAll(ctx context.Context) []roles.RoleResponse {
 	}
 
 	return response
+}
+
+// DeleteByID implements RoleUseCase.
+func (r *roleUseCaseImpl) DeleteByID(ctx context.Context, request *roles.DeleteRoleRequest) error {
+	traceID := ctx.Value(enums.TraceIDKey)
+	r.Logger.WithFields(logrus.Fields{
+		enums.TraceIDKey: traceID,
+		enums.PayloadKey: *request,
+	}).Info("ROLE_USECASE.DELETE_CALLED")
+
+	err := helpers.NewValidationStruct(r.Validate, request, r.Logger, traceID)
+	if err != nil {
+		return err
+	}
+
+	err = r.RoleRepository.DeleteByID(ctx, request.ID)
+
+	return err
 }

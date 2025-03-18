@@ -46,6 +46,7 @@ func New(config *config.Config, logger *logrus.Logger) *fiber.App {
 	//roles
 	app.Post("/roles", roleHandler.PostRoleHandler)
 	app.Get("/roles", roleHandler.GetRolesHandler)
+	app.Delete("/roles/:id", roleHandler.DeleteRoleByIDHandler)
 
 	return app
 }

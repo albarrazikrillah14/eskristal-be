@@ -26,6 +26,10 @@ func (c *CreateRoleRequest) MapToRole() Role {
 	}
 }
 
+type DeleteRoleRequest struct {
+	ID string `json:"id" validate:"required,uuid"`
+}
+
 type RoleResponse struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`

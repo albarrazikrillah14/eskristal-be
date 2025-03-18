@@ -15,6 +15,7 @@ import (
 type RoleHandler interface {
 	PostRoleHandler(ctx *fiber.Ctx) error
 	GetRolesHandler(ctx *fiber.Ctx) error
+	DeleteRoleByIDHandler(ctx *fiber.Ctx) error
 }
 
 type RoleHandlerImpl struct {
@@ -65,5 +66,26 @@ func (r *RoleHandlerImpl) GetRolesHandler(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(web.NewBaseResponse(
 		nil,
 		result,
+	))
+}
+
+// DeleteRoleByIDHandler implements RoleHandler.
+func (r *RoleHandlerImpl) DeleteRoleByIDHandler(ctx *fiber.Ctx) error {
+	c := context.Background()
+	traceID := r.IDGenerator.Generate()
+	ctx.Locals(enums.TraceIDKey, traceID)
+	contextTrace := context.WithValue(c, enums.TraceIDKey, traceID)
+
+	id := ctx.Params("id")
+
+	err := r.UseCase.DeleteByID(contextTrace, &roles.DeleteRoleRequest{id})
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(web.NewBaseResponse(
+		traceID,
+		"berhasil menghapus role",
 	))
 }

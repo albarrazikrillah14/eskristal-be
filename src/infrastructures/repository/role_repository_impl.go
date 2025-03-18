@@ -57,6 +57,34 @@ func (r *roleRepositoryImpl) FindByID(ctx context.Context, tx *gorm.DB, id strin
 	return &role, nil
 }
 
+// DeleteByID implements roles.RoleRepository.
+func (r *roleRepositoryImpl) DeleteByID(ctx context.Context, id string) error {
+	traceID := ctx.Value(enums.TraceIDKey)
+
+	result := r.DB.Delete(&roles.Role{}, "id = ?", id)
+
+	if result.Error != nil {
+		r.Logger.WithFields(logrus.Fields{
+			enums.TraceIDKey: traceID,
+			enums.ErrorsKey:  result.Error.Error(),
+		}).Error("ERR_UNKNOWN")
+
+		return exceptions.NewInvariantError("ERR_UNKNOWN")
+	}
+
+	if result.RowsAffected == 0 {
+		r.Logger.WithFields(logrus.Fields{
+			enums.TraceIDKey: traceID,
+			enums.ErrorsKey:  "ERR_ROLE.NOT_FOUND",
+		}).Error("ERR_ROLE.NOT_FOUND")
+
+		return exceptions.NewNotFoundError("ERR_ROLE.NOT_FOUND")
+
+	}
+
+	return nil
+}
+
 // Create implements roles.RoleRepository.
 func (r *roleRepositoryImpl) Create(ctx context.Context, tx *gorm.DB, role *roles.Role) error {
 	traceID := ctx.Value(enums.TraceIDKey)

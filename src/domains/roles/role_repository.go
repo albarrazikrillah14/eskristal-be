@@ -11,4 +11,5 @@ type RoleRepository interface {
 	VerifyRoleIsNotExists(ctx context.Context, tx *gorm.DB, name string) error
 	Create(ctx context.Context, tx *gorm.DB, role *Role) error
 	FindAll(ctx context.Context) []Role
+	DeleteByID(ctx context.Context, id string) error
 }
