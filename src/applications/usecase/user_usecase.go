@@ -3,7 +3,8 @@ package usecase
 import (
 	"context"
 	"rania-eskristal/src/applications/security"
-	"rania-eskristal/src/commons/helper"
+	"rania-eskristal/src/commons/enums"
+	"rania-eskristal/src/commons/helpers"
 	"rania-eskristal/src/domains/roles"
 	"rania-eskristal/src/domains/users"
 
@@ -45,13 +46,13 @@ func NewUserUseCaseImpl(
 
 func (u *userUseCaseImpl) Create(ctx context.Context, request *users.CreateUserRequest) error {
 
-	traceID := ctx.Value("trace_id")
+	traceID := ctx.Value(enums.TraceIDKey)
 	u.Logger.WithFields(logrus.Fields{
-		"trace_id": traceID,
-		"payload":  *request,
+		enums.TraceIDKey: traceID,
+		enums.PayloadKey: *request,
 	}).Info("USER_USECASE.CREATE_CALLED")
 
-	err := helper.NewValidationStruct(u.Validate, request, u.Logger, traceID)
+	err := helpers.NewValidationStruct(u.Validate, request, u.Logger, traceID)
 	if err != nil {
 		return err
 	}

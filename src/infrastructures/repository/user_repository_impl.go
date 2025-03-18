@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	idgenerator "rania-eskristal/src/applications/id_generator"
+	"rania-eskristal/src/commons/enums"
 	"rania-eskristal/src/commons/exceptions"
 	"rania-eskristal/src/domains/users"
 
@@ -31,15 +32,15 @@ func NewUserRepositoryImpl(
 
 // Create implements users.UserRepository.
 func (u *userRepositoryImpl) Create(ctx context.Context, tx *gorm.DB, user *users.User) error {
-	traceID := ctx.Value("trace_id")
+	traceID := ctx.Value(enums.TraceIDKey)
 	user.ID = u.IDGenerator.Generate()
 
 	result := tx.Create(user)
 
 	if result.Error != nil {
 		u.Logger.WithFields(logrus.Fields{
-			"trace_id": traceID,
-			"errors":   result.Error.Error(),
+			enums.TraceIDKey: traceID,
+			enums.ErrorsKey:  result.Error.Error(),
 		}).Error("ERR_CREATE_USER")
 
 		return exceptions.NewInvariantError("ERR_CREATE_USER")
@@ -50,7 +51,7 @@ func (u *userRepositoryImpl) Create(ctx context.Context, tx *gorm.DB, user *user
 
 // VerifyEmailIsExists implements users.UserRepository.
 func (u *userRepositoryImpl) VerifyEmailIsNotExists(ctx context.Context, tx *gorm.DB, email string) error {
-	traceID := ctx.Value("trace_id")
+	traceID := ctx.Value(enums.TraceIDKey)
 
 	user := users.User{}
 
@@ -62,8 +63,8 @@ func (u *userRepositoryImpl) VerifyEmailIsNotExists(ctx context.Context, tx *gor
 		}
 
 		u.Logger.WithFields(logrus.Fields{
-			"trace_id": traceID,
-			"errors":   result.Error.Error(),
+			enums.TraceIDKey: traceID,
+			enums.ErrorsKey:  result.Error.Error(),
 		}).Error("ERR_UNKNOWN")
 
 		return exceptions.NewInvariantError("ERR_UNKNOWN")
@@ -74,8 +75,8 @@ func (u *userRepositoryImpl) VerifyEmailIsNotExists(ctx context.Context, tx *gor
 	}
 
 	u.Logger.WithFields(logrus.Fields{
-		"trace_id": traceID,
-		"errors":   "ERR_USER.EMAIL_DUPLICATE_KEY",
+		enums.TraceIDKey: traceID,
+		enums.ErrorsKey:  "ERR_USER.EMAIL_DUPLICATE_KEY",
 	}).Error("ERR_DUPLICATE_KEY")
 
 	return exceptions.NewInvariantError("ERR_USER.EMAIL_DUPLICATE_KEY")
@@ -83,7 +84,7 @@ func (u *userRepositoryImpl) VerifyEmailIsNotExists(ctx context.Context, tx *gor
 
 // VerifyUsernameIsExists implements users.UserRepository.
 func (u *userRepositoryImpl) VerifyUsernameIsNotExists(ctx context.Context, tx *gorm.DB, username string) error {
-	traceID := ctx.Value("trace_id")
+	traceID := ctx.Value(enums.TraceIDKey)
 
 	user := users.User{}
 
@@ -95,8 +96,8 @@ func (u *userRepositoryImpl) VerifyUsernameIsNotExists(ctx context.Context, tx *
 		}
 
 		u.Logger.WithFields(logrus.Fields{
-			"trace_id": traceID,
-			"errors":   result.Error.Error(),
+			enums.TraceIDKey: traceID,
+			enums.ErrorsKey:  result.Error.Error(),
 		}).Error("ERR_UNKNOWN")
 
 		return exceptions.NewInvariantError("ERR_UNKNOWN")
@@ -107,8 +108,8 @@ func (u *userRepositoryImpl) VerifyUsernameIsNotExists(ctx context.Context, tx *
 	}
 
 	u.Logger.WithFields(logrus.Fields{
-		"trace_id": traceID,
-		"errors":   "ERR_USER.USERNAME_DUPLICATE_KEY",
+		enums.TraceIDKey: traceID,
+		enums.ErrorsKey:  "ERR_USER.USERNAME_DUPLICATE_KEY",
 	}).Error("ERR_DUPLICATE_KEY")
 
 	return exceptions.NewInvariantError("ERR_USER.USERNAME_DUPLICATE_KEY")

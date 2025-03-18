@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"rania-eskristal/src/commons/enums"
 	"rania-eskristal/src/commons/exceptions"
 	"rania-eskristal/src/domains/web"
 
@@ -8,7 +9,7 @@ import (
 )
 
 func ErrorHandler(ctx *fiber.Ctx, err error) error {
-	traceID := ctx.Locals("trace_id")
+	traceID := ctx.Locals(enums.TraceIDKey)
 
 	if err != nil {
 		if clientError, ok := err.(*exceptions.ClientError); ok {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	idgenerator "rania-eskristal/src/applications/id_generator"
+	"rania-eskristal/src/commons/enums"
 	"rania-eskristal/src/commons/exceptions"
 	"rania-eskristal/src/domains/roles"
 
@@ -30,7 +31,7 @@ func NewRoleRepositoryImpl(
 }
 
 func (r *roleRepositoryImpl) FindByID(ctx context.Context, tx *gorm.DB, id string) (*roles.Role, error) {
-	traceID := ctx.Value("trace_id")
+	traceID := ctx.Value(enums.TraceIDKey)
 	role := roles.Role{}
 
 	result := tx.Select("id", "name").Take(&role, "id = ?", id)
@@ -38,16 +39,16 @@ func (r *roleRepositoryImpl) FindByID(ctx context.Context, tx *gorm.DB, id strin
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			r.Logger.WithFields(logrus.Fields{
-				"trace_id": traceID,
-				"errors":   "ERR_ROLE.NOT_FOUND",
+				enums.TraceIDKey: traceID,
+				enums.ErrorsKey:  "ERR_ROLE.NOT_FOUND",
 			}).Error("ERR_ROLE.NOT_FOUND")
 
 			return nil, exceptions.NewNotFoundError("ERR_ROLE.NOT_FOUND")
 		}
 
 		r.Logger.WithFields(logrus.Fields{
-			"trace_id": traceID,
-			"errors":   result.Error.Error(),
+			enums.TraceIDKey: traceID,
+			enums.ErrorsKey:  result.Error.Error(),
 		}).Error("ERR_UNKNOWN")
 
 		return nil, exceptions.NewInvariantError("ERR_UNKNOWN")

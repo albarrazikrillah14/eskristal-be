@@ -4,6 +4,7 @@ import (
 	"context"
 	idgenerator "rania-eskristal/src/applications/id_generator"
 	"rania-eskristal/src/applications/usecase"
+	"rania-eskristal/src/commons/enums"
 	"rania-eskristal/src/commons/exceptions"
 	"rania-eskristal/src/domains/users"
 	"rania-eskristal/src/domains/web"
@@ -40,8 +41,8 @@ func (u *UserHandlerImpl) PostUserHandler(ctx *fiber.Ctx) error {
 
 	c := context.Background()
 	traceID := u.IDGenerator.Generate()
-	ctx.Locals("trace_id", traceID)
-	contextTrace := context.WithValue(c, "trace_id", traceID)
+	ctx.Locals(enums.TraceIDKey, traceID)
+	contextTrace := context.WithValue(c, enums.TraceIDKey, traceID)
 
 	err = u.UseCase.Create(contextTrace, &request)
 

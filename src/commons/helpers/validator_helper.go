@@ -1,7 +1,8 @@
-package helper
+package helpers
 
 import (
 	"fmt"
+	"rania-eskristal/src/commons/enums"
 	"rania-eskristal/src/commons/exceptions"
 	"reflect"
 	"strings"
@@ -43,8 +44,8 @@ func NewValidationStruct(
 	}
 
 	logger.WithFields(logrus.Fields{
-		"trace_id": traceID,
-		"errors":   errors,
+		enums.TraceIDKey: traceID,
+		enums.ErrorsKey:  errors,
 	}).Error("ERR_VALIDATION")
 
 	return exceptions.NewValidationError(errors)
