@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"rania-eskristal/src/applications/security"
-	"rania-eskristal/src/commons/exceptions"
 	"rania-eskristal/src/commons/helper"
 	"rania-eskristal/src/domains/roles"
 	"rania-eskristal/src/domains/users"
@@ -47,12 +46,12 @@ func NewUserUseCaseImpl(
 func (u *userUseCaseImpl) Create(ctx context.Context, request *users.CreateUserRequest) error {
 
 	traceID := ctx.Value("trace_id")
-	u.Logger.Info(exceptions.NewLogBody(
-		traceID,
-		request,
-	))
+	u.Logger.WithFields(logrus.Fields{
+		"trace_id": traceID,
+		"payload":  *request,
+	}).Info("USER_USECASE.CREATE_CALLED")
 
-	err := helper.NewValidationStruct(u.Validate, request)
+	err := helper.NewValidationStruct(u.Validate, request, u.Logger, traceID)
 	if err != nil {
 		return err
 	}
@@ -75,7 +74,10 @@ func (u *userUseCaseImpl) Create(ctx context.Context, request *users.CreateUserR
 		}
 
 		user := request.MapToUser()
-		user.Password = u.Hash.Hash(user.Password)
+		user.Password, err = u.Hash.Hash(user.Password)
+		if err != nil {
+			return err
+		}
 
 		err = u.UserRepository.Create(ctx, tx, &user)
 

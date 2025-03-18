@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"errors"
+	idgenerator "rania-eskristal/src/applications/id_generator"
 	"rania-eskristal/src/commons/exceptions"
 	"rania-eskristal/src/domains/users"
 
@@ -10,27 +12,27 @@ import (
 )
 
 type userRepositoryImpl struct {
-	DB            *gorm.DB
-	Logger        *logrus.Logger
-	UUIDGenerator func() string
+	DB          *gorm.DB
+	Logger      *logrus.Logger
+	IDGenerator idgenerator.IDGenerator
 }
 
 func NewUserRepositoryImpl(
 	db *gorm.DB,
 	logger *logrus.Logger,
-	uuidGenerator func() string,
+	idGenerator idgenerator.IDGenerator,
 ) users.UserRepository {
 	return &userRepositoryImpl{
-		DB:            db,
-		Logger:        logger,
-		UUIDGenerator: uuidGenerator,
+		DB:          db,
+		Logger:      logger,
+		IDGenerator: idGenerator,
 	}
 }
 
 // Create implements users.UserRepository.
 func (u *userRepositoryImpl) Create(ctx context.Context, tx *gorm.DB, user *users.User) error {
 	traceID := ctx.Value("trace_id")
-	user.ID = u.UUIDGenerator()
+	user.ID = u.IDGenerator.Generate()
 
 	result := tx.Create(user)
 
@@ -62,6 +64,10 @@ func (u *userRepositoryImpl) VerifyEmailIsNotExists(ctx context.Context, tx *gor
 	result := u.DB.Select("email").Take(&user, "email = ?", email)
 
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil
+		}
+
 		u.Logger.Error(exceptions.NewLogBody(
 			traceID,
 			result.Error,
@@ -91,6 +97,10 @@ func (u *userRepositoryImpl) VerifyUsernameIsNotExists(ctx context.Context, tx *
 	result := u.DB.Select("username").Take(&user, "username = ?", username)
 
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil
+		}
+
 		u.Logger.Error(exceptions.NewLogBody(
 			traceID,
 			result.Error,
@@ -105,8 +115,8 @@ func (u *userRepositoryImpl) VerifyUsernameIsNotExists(ctx context.Context, tx *
 
 	u.Logger.Info(exceptions.NewLogBody(
 		traceID,
-		"ERR_USER.USERNMAE_DUPLICATE_KEY",
+		"ERR_USER.USERNAME_DUPLICATE_KEY",
 	))
 
-	return exceptions.NewInvariantError("ERR_USER.USERNMAE_DUPLICATE_KEY")
+	return exceptions.NewInvariantError("ERR_USER.USERNAME_DUPLICATE_KEY")
 }

@@ -23,7 +23,7 @@ func (u *User) TableName() string {
 }
 
 type CreateUserRequest struct {
-	RoleID   string `json:"role_id" validate:"required"`
+	RoleID   string `json:"role_id" validate:"required,uuid"`
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Username string `json:"username" validate:"required,alphanum"`

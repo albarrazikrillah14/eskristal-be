@@ -5,9 +5,15 @@ import (
 	"rania-eskristal/src/commons/exceptions"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 )
 
-func NewValidationStruct(val *validator.Validate, request interface{}) error {
+func NewValidationStruct(
+	val *validator.Validate,
+	request any,
+	logger *logrus.Logger,
+	traceID any,
+) error {
 	err := val.Struct(request)
 	if err == nil {
 		return nil
@@ -29,6 +35,11 @@ func NewValidationStruct(val *validator.Validate, request interface{}) error {
 		}
 		errors = append(errors, error)
 	}
+
+	logger.WithFields(logrus.Fields{
+		"trace_id": traceID,
+		"errors":   errors,
+	}).Error("ERR_VALIDATION")
 
 	return exceptions.NewValidationError(errors)
 
