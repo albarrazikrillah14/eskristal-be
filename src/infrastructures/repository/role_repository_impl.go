@@ -56,3 +56,52 @@ func (r *roleRepositoryImpl) FindByID(ctx context.Context, tx *gorm.DB, id strin
 
 	return &role, nil
 }
+
+// Create implements roles.RoleRepository.
+func (r *roleRepositoryImpl) Create(ctx context.Context, tx *gorm.DB, role *roles.Role) error {
+	traceID := ctx.Value(enums.TraceIDKey)
+
+	role.ID = r.IDGenerator.Generate()
+
+	result := tx.Create(role)
+
+	if result.Error != nil {
+		r.Logger.WithFields(logrus.Fields{
+			enums.TraceIDKey: traceID,
+			enums.ErrorsKey:  result.Error.Error(),
+		}).Error("ERR_UKNOWN")
+
+		return exceptions.NewInvariantError("ERR_ROLE_UNKNOWN")
+	}
+
+	return nil
+}
+
+// VerifyRoleIsNotExists implements roles.RoleRepository.
+func (r *roleRepositoryImpl) VerifyRoleIsNotExists(ctx context.Context, tx *gorm.DB, name string) error {
+	traceID := ctx.Value(enums.TraceIDKey)
+
+	role := roles.Role{}
+
+	result := tx.Select("id", "name").Take(&role, "name = ?", name)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil
+		}
+
+		r.Logger.WithFields(logrus.Fields{
+			enums.TraceIDKey: traceID,
+			enums.ErrorsKey:  result.Error.Error(),
+		}).Error("ERR_UKNOWN")
+
+		return exceptions.NewInvariantError("ERR_ROLE_UNKNOWN")
+	}
+
+	r.Logger.WithFields(logrus.Fields{
+		enums.TraceIDKey: traceID,
+		enums.ErrorsKey:  "ERR_ROLE.NAME_DUPLICATE_KEY",
+	}).Error("ERR_DUPLICATE_KEY")
+
+	return exceptions.NewInvariantError("ERR_ROLE.NAME_DUPLICATE_KEY")
+}

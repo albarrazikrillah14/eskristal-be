@@ -6,45 +6,46 @@ import (
 	"rania-eskristal/src/applications/usecase"
 	"rania-eskristal/src/commons/enums"
 	"rania-eskristal/src/commons/exceptions"
-	"rania-eskristal/src/domains/users"
+	"rania-eskristal/src/domains/roles"
 	"rania-eskristal/src/domains/web"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserHandler interface {
-	PostUserHandler(ctx *fiber.Ctx) error
+type RoleHandler interface {
+	PostRoleHandler(ctx *fiber.Ctx) error
 }
 
-type UserHandlerImpl struct {
-	UseCase     usecase.UserUseCase
+type RoleHandlerImpl struct {
+	UseCase     usecase.RoleUseCase
 	IDGenerator idgenerator.IDGenerator
 }
 
-func NewUserHandlerImpl(
-	usecase usecase.UserUseCase,
+func NewRoleHandlerImpl(
+	usecase usecase.RoleUseCase,
 	idGenerator idgenerator.IDGenerator,
-) UserHandler {
-	return &UserHandlerImpl{
+) RoleHandler {
+	return &RoleHandlerImpl{
 		UseCase:     usecase,
 		IDGenerator: idGenerator,
 	}
 }
 
-func (u *UserHandlerImpl) PostUserHandler(ctx *fiber.Ctx) error {
+// PostRoleHandler implements RoleHandler.
+func (r *RoleHandlerImpl) PostRoleHandler(ctx *fiber.Ctx) error {
 	c := context.Background()
-	traceID := u.IDGenerator.Generate()
+	traceID := r.IDGenerator.Generate()
 	ctx.Locals(enums.TraceIDKey, traceID)
 	contextTrace := context.WithValue(c, enums.TraceIDKey, traceID)
 
-	request := users.CreateUserRequest{}
+	request := roles.CreateRoleRequest{}
 	err := ctx.BodyParser(&request)
 
 	if err != nil {
 		return exceptions.NewInvariantError(err.Error())
 	}
 
-	err = u.UseCase.Create(contextTrace, &request)
+	err = r.UseCase.Create(contextTrace, &request)
 
 	if err != nil {
 		return err
@@ -52,6 +53,6 @@ func (u *UserHandlerImpl) PostUserHandler(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusCreated).JSON(web.NewBaseResponse(
 		traceID,
-		"berhasil menambahkan user",
+		"berhasil menambahkan role",
 	))
 }

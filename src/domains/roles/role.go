@@ -8,3 +8,13 @@ type Role struct {
 func (r *Role) TableName() string {
 	return "roles"
 }
+
+type CreateRoleRequest struct {
+	Name string `json:"name" validate:"required"`
+}
+
+func (c *CreateRoleRequest) MapToRole() Role {
+	return Role{
+		Name: c.Name,
+	}
+}

@@ -34,10 +34,16 @@ func New(config *config.Config, logger *logrus.Logger) *fiber.App {
 
 	//usecase
 	userUseCase := usecase.NewUserUseCaseImpl(db, validator, logger, bcrypt, roleRepository, userRepository)
+	roleUseCase := usecase.NewRoleUseCaseImpl(db, validator, logger, roleRepository)
 
 	//handlers
 	userHandler := handlers.NewUserHandlerImpl(userUseCase, idGenerator)
+	roleHandler := handlers.NewRoleHandlerImpl(roleUseCase, idGenerator)
 
+	//users
 	app.Post("/users", userHandler.PostUserHandler)
+
+	//roles
+	app.Post("/roles", roleHandler.PostRoleHandler)
 	return app
 }
