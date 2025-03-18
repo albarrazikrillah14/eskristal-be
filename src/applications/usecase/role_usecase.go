@@ -13,6 +13,7 @@ import (
 
 type RoleUseCase interface {
 	Create(ctx context.Context, request *roles.CreateRoleRequest) error
+	FindAll(ctx context.Context) []roles.RoleResponse
 }
 
 type roleUseCaseImpl struct {
@@ -62,4 +63,17 @@ func (r *roleUseCaseImpl) Create(ctx context.Context, request *roles.CreateRoleR
 	})
 
 	return errTx
+}
+
+// FindAll implements RoleUseCase.
+func (r *roleUseCaseImpl) FindAll(ctx context.Context) []roles.RoleResponse {
+	result := r.RoleRepository.FindAll(ctx)
+
+	response := []roles.RoleResponse{}
+
+	for _, rl := range result {
+		response = append(response, rl.MapToResponse())
+	}
+
+	return response
 }

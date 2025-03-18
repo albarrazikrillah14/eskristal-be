@@ -14,6 +14,7 @@ import (
 
 type RoleHandler interface {
 	PostRoleHandler(ctx *fiber.Ctx) error
+	GetRolesHandler(ctx *fiber.Ctx) error
 }
 
 type RoleHandlerImpl struct {
@@ -54,5 +55,15 @@ func (r *RoleHandlerImpl) PostRoleHandler(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(web.NewBaseResponse(
 		traceID,
 		"berhasil menambahkan role",
+	))
+}
+
+// GetRolesHandler implements RoleHandler.
+func (r *RoleHandlerImpl) GetRolesHandler(ctx *fiber.Ctx) error {
+	result := r.UseCase.FindAll(context.Background())
+
+	return ctx.Status(fiber.StatusOK).JSON(web.NewBaseResponse(
+		nil,
+		result,
 	))
 }

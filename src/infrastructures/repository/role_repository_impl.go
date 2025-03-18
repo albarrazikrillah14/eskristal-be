@@ -105,3 +105,14 @@ func (r *roleRepositoryImpl) VerifyRoleIsNotExists(ctx context.Context, tx *gorm
 
 	return exceptions.NewInvariantError("ERR_ROLE.NAME_DUPLICATE_KEY")
 }
+
+// FindAll implements roles.RoleRepository.
+func (r *roleRepositoryImpl) FindAll(ctx context.Context) []roles.Role {
+	allRoles := []roles.Role{}
+
+	err := r.DB.Select("id", "name").Find(&allRoles).Error
+	if err != nil {
+		return []roles.Role{}
+	}
+	return allRoles
+}
