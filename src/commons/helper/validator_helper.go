@@ -3,6 +3,8 @@ package helper
 import (
 	"fmt"
 	"rania-eskristal/src/commons/exceptions"
+	"reflect"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
@@ -25,12 +27,16 @@ func NewValidationStruct(
 	}
 
 	errors := make([]exceptions.ValidationError, 0, len(validationErrors))
-	// t := reflect.TypeOf(request).Elem()
+	t := reflect.TypeOf(request).Elem()
 
 	for _, fieldError := range validationErrors {
-		// field, ok := t.FieldByName(fieldError.StructField())
+		field, _ := t.FieldByName(fieldError.StructField())
+		jsonTag := field.Tag.Get("json")
+
+		jsonName := strings.Split(jsonTag, ",")[0]
+
 		error := exceptions.ValidationError{
-			Field:   fieldError.StructField(),
+			Field:   jsonName,
 			Message: getValidationMessage(fieldError),
 		}
 		errors = append(errors, error)
@@ -42,7 +48,6 @@ func NewValidationStruct(
 	}).Error("ERR_VALIDATION")
 
 	return exceptions.NewValidationError(errors)
-
 }
 
 func getValidationMessage(fieldError validator.FieldError) string {
@@ -57,6 +62,8 @@ func getValidationMessage(fieldError validator.FieldError) string {
 		return fmt.Sprintf("panjang karakter tidak boleh lebih dari %s", fieldError.Param())
 	case "oneof":
 		return fmt.Sprintf("gunakan salah satu dari : %v", fieldError.Param())
+	case "uuid":
+		return "gunakan format uuid dengan benar"
 	case "datetime":
 		return "format waktu tidak valid, gunakan format RFC3339: YYYY-MM-DDTHH:MM:SSZ"
 	default:

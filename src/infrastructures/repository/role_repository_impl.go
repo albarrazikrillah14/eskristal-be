@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	idgenerator "rania-eskristal/src/applications/id_generator"
 	"rania-eskristal/src/commons/exceptions"
 	"rania-eskristal/src/domains/roles"
@@ -33,22 +34,23 @@ func (r *roleRepositoryImpl) FindByID(ctx context.Context, tx *gorm.DB, id strin
 	role := roles.Role{}
 
 	result := tx.Select("id", "name").Take(&role, "id = ?", id)
+
 	if result.Error != nil {
-		r.Logger.Error(exceptions.NewLogBody(
-			traceID,
-			result.Error,
-		))
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			r.Logger.WithFields(logrus.Fields{
+				"trace_id": traceID,
+				"errors":   "ERR_ROLE.NOT_FOUND",
+			}).Error("ERR_ROLE.NOT_FOUND")
+
+			return nil, exceptions.NewNotFoundError("ERR_ROLE.NOT_FOUND")
+		}
+
+		r.Logger.WithFields(logrus.Fields{
+			"trace_id": traceID,
+			"errors":   result.Error.Error(),
+		}).Error("ERR_UNKNOWN")
 
 		return nil, exceptions.NewInvariantError("ERR_UNKNOWN")
-	}
-
-	if result.RowsAffected == 0 {
-		r.Logger.Info(
-			traceID,
-			"ERR_ROLE_NOT_FOUND",
-		)
-
-		return nil, exceptions.NewNotFoundError("ERR_ROLE_NOT_FOUND")
 	}
 
 	return &role, nil

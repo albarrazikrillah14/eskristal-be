@@ -8,6 +8,7 @@ import (
 	"rania-eskristal/src/infrastructures/repository"
 	"rania-eskristal/src/infrastructures/security"
 	"rania-eskristal/src/interfaces/http/api/handlers"
+	"rania-eskristal/src/interfaces/http/api/middlewares"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -16,7 +17,9 @@ import (
 
 func New(config *config.Config, logger *logrus.Logger) *fiber.App {
 	app := fiber.New(
-		fiber.Config{},
+		fiber.Config{
+			ErrorHandler: middlewares.ErrorHandler,
+		},
 	)
 
 	//external

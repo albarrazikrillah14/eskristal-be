@@ -6,6 +6,7 @@ import (
 	"rania-eskristal/src/applications/usecase"
 	"rania-eskristal/src/commons/exceptions"
 	"rania-eskristal/src/domains/users"
+	"rania-eskristal/src/domains/web"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -38,7 +39,9 @@ func (u *UserHandlerImpl) PostUserHandler(ctx *fiber.Ctx) error {
 	}
 
 	c := context.Background()
-	contextTrace := context.WithValue(c, "trace_id", u.IDGenerator.Generate())
+	traceID := u.IDGenerator.Generate()
+	ctx.Locals("trace_id", traceID)
+	contextTrace := context.WithValue(c, "trace_id", traceID)
 
 	err = u.UseCase.Create(contextTrace, &request)
 
@@ -46,7 +49,8 @@ func (u *UserHandlerImpl) PostUserHandler(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(fiber.StatusCreated).JSON(map[string]any{
-		"data": "berhasil menambahkan user",
-	})
+	return ctx.Status(fiber.StatusCreated).JSON(web.NewBaseResponse(
+		traceID,
+		"berhasil menambahkan user",
+	))
 }

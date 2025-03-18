@@ -37,19 +37,12 @@ func (u *userRepositoryImpl) Create(ctx context.Context, tx *gorm.DB, user *user
 	result := tx.Create(user)
 
 	if result.Error != nil {
-		u.Logger.Error(exceptions.NewLogBody(
-			traceID,
-			result.Error,
-		))
+		u.Logger.WithFields(logrus.Fields{
+			"trace_id": traceID,
+			"errors":   result.Error.Error(),
+		}).Error("ERR_CREATE_USER")
 
 		return exceptions.NewInvariantError("ERR_CREATE_USER")
-	}
-
-	if result.RowsAffected == 0 {
-		u.Logger.Error(exceptions.NewLogBody(
-			traceID,
-			"user cannot be inserted into database",
-		))
 	}
 
 	return nil
@@ -68,10 +61,10 @@ func (u *userRepositoryImpl) VerifyEmailIsNotExists(ctx context.Context, tx *gor
 			return nil
 		}
 
-		u.Logger.Error(exceptions.NewLogBody(
-			traceID,
-			result.Error,
-		))
+		u.Logger.WithFields(logrus.Fields{
+			"trace_id": traceID,
+			"errors":   result.Error.Error(),
+		}).Error("ERR_UNKNOWN")
 
 		return exceptions.NewInvariantError("ERR_UNKNOWN")
 	}
@@ -80,10 +73,10 @@ func (u *userRepositoryImpl) VerifyEmailIsNotExists(ctx context.Context, tx *gor
 		return nil
 	}
 
-	u.Logger.Info(exceptions.NewLogBody(
-		traceID,
-		"ERR_USER.EMAIL_DUPLICATE_KEY",
-	))
+	u.Logger.WithFields(logrus.Fields{
+		"trace_id": traceID,
+		"errors":   "ERR_USER.EMAIL_DUPLICATE_KEY",
+	}).Error("ERR_DUPLICATE_KEY")
 
 	return exceptions.NewInvariantError("ERR_USER.EMAIL_DUPLICATE_KEY")
 }
@@ -94,17 +87,17 @@ func (u *userRepositoryImpl) VerifyUsernameIsNotExists(ctx context.Context, tx *
 
 	user := users.User{}
 
-	result := u.DB.Select("username").Take(&user, "username = ?", username)
+	result := u.DB.Select("username").Take(&user, "email = ?", username)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil
 		}
 
-		u.Logger.Error(exceptions.NewLogBody(
-			traceID,
-			result.Error,
-		))
+		u.Logger.WithFields(logrus.Fields{
+			"trace_id": traceID,
+			"errors":   result.Error.Error(),
+		}).Error("ERR_UNKNOWN")
 
 		return exceptions.NewInvariantError("ERR_UNKNOWN")
 	}
@@ -113,10 +106,10 @@ func (u *userRepositoryImpl) VerifyUsernameIsNotExists(ctx context.Context, tx *
 		return nil
 	}
 
-	u.Logger.Info(exceptions.NewLogBody(
-		traceID,
-		"ERR_USER.USERNAME_DUPLICATE_KEY",
-	))
+	u.Logger.WithFields(logrus.Fields{
+		"trace_id": traceID,
+		"errors":   "ERR_USER.USERNAME_DUPLICATE_KEY",
+	}).Error("ERR_DUPLICATE_KEY")
 
 	return exceptions.NewInvariantError("ERR_USER.USERNAME_DUPLICATE_KEY")
 }
