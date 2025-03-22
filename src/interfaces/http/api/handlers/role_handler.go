@@ -78,7 +78,7 @@ func (r *RoleHandlerImpl) DeleteRoleByIDHandler(ctx *fiber.Ctx) error {
 
 	id := ctx.Params("id")
 
-	err := r.UseCase.DeleteByID(contextTrace, &roles.DeleteRoleRequest{id})
+	err := r.UseCase.DeleteByID(contextTrace, &roles.DeleteRoleRequest{ID: id})
 
 	if err != nil {
 		return err

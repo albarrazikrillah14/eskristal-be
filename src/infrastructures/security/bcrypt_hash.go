@@ -2,6 +2,7 @@ package security
 
 import (
 	"rania-eskristal/src/applications/security"
+	"rania-eskristal/src/commons/exceptions"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -26,5 +27,9 @@ func (b *bcryptHash) Hash(plain string) (string, error) {
 func (b *bcryptHash) Compare(hashed string, actual string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(actual))
 
-	return err
+	if err != nil {
+		return exceptions.NewInvariantError("ERR_PASSWORD_NOT_MATCH")
+	}
+
+	return nil
 }

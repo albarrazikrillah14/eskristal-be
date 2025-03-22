@@ -114,3 +114,20 @@ func (u *userRepositoryImpl) VerifyUsernameIsNotExists(ctx context.Context, tx *
 
 	return exceptions.NewInvariantError("ERR_USER.USERNAME_DUPLICATE_KEY")
 }
+
+// FindByEmailOrUsername implements users.UserRepository.
+func (u *userRepositoryImpl) FindByEmailOrUsername(ctx context.Context, tx *gorm.DB, usernameOrEmail string) (*users.User, error) {
+	user := users.User{}
+
+	result := u.DB.Select("id", "role_id", "password").Take(&user, "username = ? OR email = ?", usernameOrEmail, usernameOrEmail)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, exceptions.NewNotFoundError("ERR_USER_NOT_FOUND")
+		}
+
+		return nil, exceptions.NewInvariantError("ERR_UNKOWN")
+	}
+
+	return &user, nil
+}

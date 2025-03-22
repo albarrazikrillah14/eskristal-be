@@ -27,6 +27,7 @@ func New(config *config.Config, logger *logrus.Logger) *fiber.App {
 	db := pg.New(&config.DB, logger).Connection()
 	validator := validator.New()
 	idGenerator := idgenerator.New()
+	jwtTokenManager := security.NewJwtTokenManager(&config.JWT)
 
 	//repository
 	userRepository := repository.NewUserRepositoryImpl(db, logger, idGenerator)
@@ -35,10 +36,12 @@ func New(config *config.Config, logger *logrus.Logger) *fiber.App {
 	//usecase
 	userUseCase := usecase.NewUserUseCaseImpl(db, validator, logger, bcrypt, roleRepository, userRepository)
 	roleUseCase := usecase.NewRoleUseCaseImpl(db, validator, logger, roleRepository)
+	authenticationUseCase := usecase.NewAuthenticationUseCaseImpl(db, validator, logger, jwtTokenManager, bcrypt, userRepository)
 
 	//handlers
 	userHandler := handlers.NewUserHandlerImpl(userUseCase, idGenerator)
 	roleHandler := handlers.NewRoleHandlerImpl(roleUseCase, idGenerator)
+	authenticationHandler := handlers.NewAuthenticationHandlerImpl(authenticationUseCase, idGenerator)
 
 	//users
 	app.Post("/users", userHandler.PostUserHandler)
@@ -48,5 +51,7 @@ func New(config *config.Config, logger *logrus.Logger) *fiber.App {
 	app.Get("/roles", roleHandler.GetRolesHandler)
 	app.Delete("/roles/:id", roleHandler.DeleteRoleByIDHandler)
 
+	//authentication
+	app.Post("/authentications", authenticationHandler.PostAuthenticationHandler)
 	return app
 }

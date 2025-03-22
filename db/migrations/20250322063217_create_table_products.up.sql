@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS products(
+  id UUID PRIMARY KEY NOT NULL,
+  owner_id UUID NOT NULL,
+  name TEXT NOT NULL,
+  price INTEGER NOT NULL DEFAULT 0,
+  stocks INTEGER NOT NULL DEFAULT 0,
+  description TEXT NOT NULL,
+  image TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  deleted_at TIMESTAMP,
+  CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
+);
